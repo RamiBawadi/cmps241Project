@@ -75,6 +75,15 @@ int CheckWinCondition(char board[ROWS][COLS]) {
     return 0; 
 }
 
+int getAvailbleY(char board[ROWS][COLS],int x){
+    for(int i = ROWS-1; i >= 0;i--){
+        if(BoardAt(board,i,x) == '*'){
+            return i;
+        }
+    }
+
+    return -1;
+}
 
 int main() {
     char board[ROWS][COLS];
@@ -85,13 +94,23 @@ int main() {
         }
     }
 
-    printf("Initial board:\n");
-    printBoard(board);
 
-    insertAt(board,1,1,'A');
-    
-    printf("\nBoard after insertions:\n");
     printBoard(board);
+    printf("\n");
+
+    int tempy = getAvailbleY(board,0);
+    insertAt(board,tempy,0,'A');
+    printBoard(board);
+    printf("\n");
+
+    tempy = getAvailbleY(board,0);
+    insertAt(board,tempy,0,'A');
+    printBoard(board);
+    printf("\n");
+    
+
+    tempy = getAvailbleY(board,0);
+    printf("%d\n",tempy);
 
     return 0;
 }
