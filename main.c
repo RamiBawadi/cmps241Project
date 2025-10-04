@@ -6,9 +6,9 @@ int main() {
     char board[ROWS][COLS];
     bool turnA = true;
     bool endGame = false;
-    char playerAChar = 'A'
+    char playerAChar = 'A';
     char playerBChar = 'B';
-    int countAWon = 0
+    int countAWon = 0;
     int countBWon = 0;
 
     for (int i = 0; i < ROWS; i++){
