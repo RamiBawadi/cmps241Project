@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdbool.h> //no bool in c, so we use this.
+
+
 
 #define ROWS 6
 #define COLS 7
@@ -85,6 +88,33 @@ int getAvailbleY(char board[ROWS][COLS],int x){
     return -1;
 }
 
+int ValidateInput(char board[ROWS][COLS]){
+    int col;
+    int y;
+    bool validIN = false;
+    while (!validIN) { 
+        printf("Enter column number between 0 and 6: ");
+
+        scanf("%d", &col);
+
+       
+        if (col < 0 || col >= COLS){
+            printf("Column out of range! Please choose between 0 and 6.\n");
+            continue; 
+        }
+
+        
+        y = getAvailbleY(board, col);
+        if (y == -1){
+            printf("Column %d is full! Try a different one.\n", col);
+            continue; 
+        }
+
+        validIN = true;
+        return col;
+    }
+}
+
 int main() {
     char board[ROWS][COLS];
 
@@ -111,7 +141,7 @@ int main() {
 
     tempy = getAvailbleY(board,0);
     printf("%d\n",tempy);
-
+    
     return 0;
 }
 
