@@ -1,13 +1,11 @@
 #ifndef GAME_H
 #define GAME_H
-
-#include <stdbool.h>
-
 #define ROWS 6
 #define COLS 7
 
+#include <stdbool.h>
+
 // Input handling
-void clear_input_buffer();
 char getChar(char symbol, char dif);
 bool playAgain();
 

@@ -1,11 +1,6 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include "game.h"
 
-void clear_input_buffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
-}
 
 char getChar(char symbol, char dif) {
     bool validIN = false;
@@ -22,7 +17,7 @@ char getChar(char symbol, char dif) {
         }
         clear_input_buffer();
 
-        if (sym == '\n' || sym == ' ' || sym == '*' || sym == dif) {
+        if (sym == '\n' ||  sym == '\0'|| sym == ' ' || sym == '*' || sym == '#'||sym == dif) {
             printf("Can't select this char, please select another char.\n");
         } else {
             validIN = true;

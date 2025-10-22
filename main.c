@@ -2,10 +2,19 @@
 #include <stdbool.h>
 #include "game.h"
 
+
+void clear_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 int main() {
     char board[ROWS][COLS];
     bool turnA = true;
     bool endGame = false;
+
+    bool playerAi = false;
+
     char playerAChar = 'A';
     char playerBChar = 'B';
     int countAWon = 0;
@@ -20,7 +29,14 @@ int main() {
     printf("Welcome to Connect 4!");
 
     playerAChar = getChar('A', '*');
-    playerBChar = getChar('B', playerAChar);
+    bool isPlayerB_AI = getisPlayerB_Ai();
+    if(isPlayerB_AI){
+        playerBChar = '#';
+    }
+    else{
+        playerBChar = getChar('B', playerAChar);
+    }
+    
 
     while (!endGame) {
         if (!canContinueGame(board)) {
@@ -28,7 +44,9 @@ int main() {
             printf("Board is full! No one won.\n");
 
             printf("\nDo you want to play again?");
-            if (playAgain()) {
+            bool _playAgain = playAgain();
+            printf("\nPlay again status : %d",_playAgain);
+            if (_playAgain) {
                 for (int i = 0; i < ROWS; i++)
                     for (int j = 0; j < COLS; j++)
                         board[i][j] = '*';
@@ -46,7 +64,14 @@ int main() {
             ValidateInput(board, playerAChar);
         }
         else{
-            ValidateInput(board, playerBChar);
+            if(isPlayerB_AI){
+                ValidateInput_Ai(board);
+            }
+            else {
+                ValidateInput(board, playerBChar);  
+            }
+            
+            
         }
 
         printBoard(board);
