@@ -1,0 +1,26 @@
+CC = gcc
+CFLAGS = -Wall -Werror
+TARGET = gameOut
+
+SRCS = main.c game.c ai.c
+OBJS = $(SRCS:.c=.o)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+# Dependencies
+main.o: main.c game.h ai.h
+game.o: game.c game.h
+ai.o: ai.c ai.h game.h
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	
+.PHONY: clean
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+	
+

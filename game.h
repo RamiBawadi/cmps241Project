@@ -6,6 +6,7 @@
 #include <stdbool.h>
 
 // Input handling
+void clear_input_buffer();
 char getChar(char symbol, char dif);
 bool playAgain();
 

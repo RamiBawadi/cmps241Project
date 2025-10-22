@@ -21,18 +21,19 @@ bool getisPlayerB_Ai(){
 
         if(res == 0){
             validIN = true;
-            return false;
+            return true;
         }
         else if(res == 1){
             validIN = true;
-            return true;
+            return false;
         }
         else{
             printf("Invalid number, please try again.\n");
             clear_input_buffer();
-            continue;
         }
     }
+    printf("Unreach");
+    return false; //for Werror
 }
 
 void ValidateInput_Ai(char board[ROWS][COLS]){

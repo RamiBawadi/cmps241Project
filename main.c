@@ -1,19 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "game.h"
-
-
-void clear_input_buffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
-}
+#include "ai.h"
 
 int main() {
     char board[ROWS][COLS];
     bool turnA = true;
     bool endGame = false;
-
-    bool playerAi = false;
 
     char playerAChar = 'A';
     char playerBChar = 'B';
@@ -65,6 +58,7 @@ int main() {
         }
         else{
             if(isPlayerB_AI){
+                printf("\n\n");
                 ValidateInput_Ai(board);
             }
             else {
@@ -78,11 +72,16 @@ int main() {
 
         if (checkWinCondition(board)) {
             if (turnA) {
-                printf("\nPlayer %c wins!\n", playerBChar);
-                countBWon++;
-            } else {
                 printf("\nPlayer %c wins!\n", playerAChar);
                 countAWon++;
+            } else {
+              if(isPlayerB_AI){
+                printf("\nAI wins!\n");
+              }
+              else{
+                printf("\nPlayer %c wins!\n", playerAChar);
+              }
+              countAWon++;
             }
 
             printf("\nDo you want to play again?");

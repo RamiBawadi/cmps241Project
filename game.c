@@ -1,15 +1,21 @@
 #include <stdio.h>
 #include "game.h"
 
+void clear_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
 
 char getChar(char symbol, char dif) {
     bool validIN = false;
     char sym;
 
     while (!validIN) { 
+        
         printf("\n");
         printf("Player %c, please select a character : ", symbol);
-
+        clear_input_buffer();
         if (scanf("%c", &sym) != 1) {
             printf("Invalid character.\n");
             clear_input_buffer();
