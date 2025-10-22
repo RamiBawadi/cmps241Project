@@ -79,9 +79,9 @@ int main() {
                 printf("\nAI wins!\n");
               }
               else{
-                printf("\nPlayer %c wins!\n", playerAChar);
+                printf("\nPlayer %c wins!\n", playerBChar);
               }
-              countAWon++;
+              countBWon++;
             }
 
             printf("\nDo you want to play again?");

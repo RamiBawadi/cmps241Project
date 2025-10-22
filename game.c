@@ -15,7 +15,7 @@ char getChar(char symbol, char dif) {
         
         printf("\n");
         printf("Player %c, please select a character : ", symbol);
-        clear_input_buffer();
+        //clear_input_buffer();
         if (scanf("%c", &sym) != 1) {
             printf("Invalid character.\n");
             clear_input_buffer();
