@@ -25,6 +25,7 @@ int main() {
     bool isPlayerB_AI = getisPlayerB_Ai();
     if(isPlayerB_AI){
         playerBChar = '#';
+        reportStrategyComplexity();
     }
     else{
         playerBChar = getChar('B', playerAChar);
