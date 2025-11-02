@@ -36,7 +36,10 @@ bool getisPlayerB_Ai(){
     return false; //for Werror
 }
 
-void ValidateInput_Ai(char board[ROWS][COLS]){
+
+//easy level bot
+
+/* void ValidateInput_Ai(char board[ROWS][COLS]){
     int col, y;
     bool validIN = false;
     srand(time(NULL)); //set the time as seed for the random number gen;
@@ -62,3 +65,77 @@ void ValidateInput_Ai(char board[ROWS][COLS]){
         }
     }
 }
+
+*/   
+
+//medium level bot
+void ValidateInput_Ai(char board[ROWS][COLS]) {
+   
+    const char botSym = '#';  
+     char oppSym = 'A';  
+
+    for (int i = 0; i < ROWS; i++) {
+        for (int j = 0; j < COLS; j++) {
+            char cell = board[i][j];
+            if (cell != '*' && cell != '#' && cell != '\0') {
+                oppSym = cell;
+                break;
+            }
+        }
+    }
+
+    static int s = 0;
+    if (!s) { srand((unsigned)time(NULL)); s = 1; }
+
+    int col, y;
+
+   
+    for (col = 0; col < COLS; ++col) {
+        y = getAvailbleY(board, col);
+        if (y == -1) continue;
+
+       
+        char tmp[ROWS][COLS];
+        for (int r = 0; r < ROWS; ++r)
+            for (int c = 0; c < COLS; ++c)
+                tmp[r][c] = board[r][c];
+
+        insertAt(tmp, y, col, botSym);
+        if (checkWinCondition(tmp)) {     
+            insertAt(board, y, col, botSym);
+            return;
+        }
+    }
+
+    
+    for (col = 0; col < COLS; ++col) {
+        y = getAvailbleY(board, col);
+        if (y == -1) continue;
+
+        char tmp[ROWS][COLS];
+        for (int r = 0; r < ROWS; ++r)
+            for (int c = 0; c < COLS; ++c)
+                tmp[r][c] = board[r][c];
+
+        insertAt(tmp, y, col, oppSym);
+        if (checkWinCondition(tmp)) {     
+            insertAt(board, y, col, botSym);
+            return;
+        }
+    }
+
+    
+    while (1) {
+        int choice = rand() % COLS;
+        y = getAvailbleY(board, choice);
+        if (y != -1) {
+            insertAt(board, y, choice, botSym);
+            return;
+        }
+       
+    }
+}
+
+
+
+
