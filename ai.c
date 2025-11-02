@@ -137,5 +137,35 @@ void ValidateInput_Ai(char board[ROWS][COLS]) {
 }
 
 
+void reportStrategyComplexity(void) {
+    
+
+    int rows = ROWS;
+    int cols = COLS;
+
+    long approxCheckCost = 12L * rows * cols;
+    long approxCopyCost = rows * cols;
+    long oneSimulatedMove = approxCopyCost + approxCheckCost;
+    long winScanCost = cols * oneSimulatedMove;
+    long blockScanCost = cols * oneSimulatedMove;
+    long randomFallbackCost = rows * cols;
+    long totalWork = winScanCost + blockScanCost + randomFallbackCost;
+
+    printf("\n========== Strategy Complexity Report ==========\n");
+    printf("Board Size  : %d rows x %d columns\n", rows, cols);
+    printf("Bot Time Complexity per Move: O(R * C^2)\n\n");
+
+    printf("Breakdown:\n");
+    printf("  One simulated move (copy + check)      ≈ %ld steps\n", oneSimulatedMove);
+    printf("  Winning move scan across board          ≈ %ld steps\n", winScanCost);
+    printf("  Blocking move scan across board         ≈ %ld steps\n", blockScanCost);
+    printf("  Random fallback (worst case)            ≈ %ld steps\n", randomFallbackCost);
+
+    printf("\nEstimated Total per Medium AI Move        ≈ %ld steps\n", totalWork);
+    printf("==========================================================\n\n");
+}
+
+
+
 
 

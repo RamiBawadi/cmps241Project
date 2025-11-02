@@ -5,5 +5,7 @@
 
 bool getisPlayerB_Ai();
 void ValidateInput_Ai();
+void reportStrategyComplexity(void);
+
 
 #endif
