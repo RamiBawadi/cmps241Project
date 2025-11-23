@@ -1,10 +1,11 @@
 #include <stdio.h>
-#include "game.h"
-#include "ai.h"
-
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <limits.h>
+
+#include "game.h"
+#include "ai.h"
 
 // pruning means cuttiong off branches of the game that we dont need to explore because we already know they cant lead to a better result
 

@@ -47,6 +47,8 @@ int server_init()
         perror("accept");
         return 0;
     }
+
+    return 1;
 }
 
 void server_send_message(const char *msg)

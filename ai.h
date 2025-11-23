@@ -1,6 +1,7 @@
 #ifndef AI_H
 #define AI_H
 
+#include "game.h"
 #include <stdbool.h>
 
 bool getisPlayerB_Ai();
