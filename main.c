@@ -3,6 +3,7 @@
 #include "game.h"
 #include "ai.h"
 #include "server.h"
+#include "client.h"
 
 int main()
 {
@@ -76,7 +77,6 @@ int main()
                     isPlayerB_Online = true;
                     validinputIN_2 = true;
                     validinputIN = true;
-                    hostGame();
                 }
                 else if (res2 == 1)
                 {
@@ -84,7 +84,6 @@ int main()
                     isPlayerB_Online = true;
                     validinputIN_2 = true;
                     validinputIN = true;
-                    joinGame();
                 }
                 else if (res2 == 2)
                 {
@@ -111,6 +110,31 @@ int main()
         playerBChar = '#';
         reportStrategyComplexity();
     }
+    else if (isPlayerB_Online)
+    {
+        if (isHost)
+        {
+            // Host starts the server and waits for client
+            printf("\nStarting server... waiting for another player..\n");
+            server_init();
+            server_send_char(playerAChar);
+            playerBChar = server_receive_char();
+            printf("Another player connected with character %c.\n\n", playerBChar);
+        }
+        else
+        {
+            // Client connects to the host
+            char ip[64];
+            printf("Enter host IP (eg: 127.0.0.1): ");
+            scanf("%63s", ip);
+
+            client_init(ip);
+
+            playerBChar = client_receive_char();
+            client_send_char(playerAChar);
+        }
+    }
+
     else
     {
         playerBChar = getChar('B', playerAChar);
@@ -145,35 +169,119 @@ int main()
 
         if (turnA)
         {
-            ValidateInput(board, playerAChar);
-        }
-        else
-        {
-            if (isPlayerB_AI)
+
+            if (isPlayerB_Online && isHost)
             {
-                printf("\n\n");
-                ValidateInput_Ai(board);
+
+                printf("\n");
+                ValidateInput_Server(board, playerAChar);
+                server_send_board(board);
+            }
+            else if (isPlayerB_Online && !isHost)
+            {
+                printf("\nIt's Player %c's turn. Waiting for their move...\n\n", playerBChar);
+                client_receive_board(board);
             }
             else
             {
+                ValidateInput(board, playerAChar);
+            }
+        }
+        else
+        {
+
+            if (isPlayerB_AI)
+            {
+                ValidateInput_Ai(board);
+            }
+            else if (isPlayerB_Online && isHost)
+            {
+                // Server receives B's moves
+                printf("\nIt's Player %c's turn. Waiting for their move...\n\n", playerBChar);
+                int col = server_receive_int();
+                int y = getAvailbleY(board, col);
+                insertAt(board, y, col, playerBChar);
+                server_send_board(board);
+            }
+            else if (isPlayerB_Online && !isHost)
+            {
+
+                printf("\n");
+                int col = ValidateInput_Client(board, playerAChar);
+                client_send_int(col);
+                client_receive_board(board);
+            }
+            else
+            {
+                // LOCAL PvP
                 ValidateInput(board, playerBChar);
             }
         }
 
         printBoard(board);
+        printf("\n");
+        bool winner = checkWinCondition(board);
 
-        if (checkWinCondition(board))
+        if (!winner && isPlayerB_Online && isHost)
+        {
+            server_send_message("No Win");
+        }
+
+        if (isPlayerB_Online && !isHost)
+        {
+            char *msg = client_receive_message();
+
+            if (strncmp(msg, "WIN:", 4) == 0)
+            {
+                char winner = msg[4];
+                if (winner != playerAChar)
+                {
+                    printf("\nPlayer %c wins! Better luck next time\n", winner);
+                }
+                else
+                {
+                    printf("\nYou WON! Congratulations!\n");
+                }
+                endGame = true;
+                client_close();
+            }
+        }
+
+        if (winner && (!isPlayerB_Online || (isPlayerB_Online && isHost)))
         {
             if (turnA)
             {
-                printf("\nPlayer %c wins!\n", playerAChar);
-                countAWon++;
+
+                if (isPlayerB_Online)
+                {
+
+                    char msg[16];
+                    printf("\nYou WON! Congratulations!\n");
+                    sprintf(msg, "WIN:%c", playerAChar);
+                    server_send_message(msg);
+                    endGame = true;
+                    break;
+                }
+                else
+                {
+                    printf("\nPlayer %c wins!\n", playerAChar);
+                    countAWon++;
+                }
             }
             else
             {
                 if (isPlayerB_AI)
                 {
                     printf("\nAI wins!\n");
+                }
+                else if (isPlayerB_Online)
+                {
+                    printf("\nPlayer %c wins! Better luck next \n", playerBChar);
+                    char msg[16];
+                    sprintf(msg, "WIN:%c", playerBChar); // format WIN:A or WIN:B
+                    server_send_message(msg);
+                    endGame = true;
+                    break;
                 }
                 else
                 {

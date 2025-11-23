@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "game.h"
+#include "server.h"
+#include "client.h"
 
 void clear_input_buffer()
 {
@@ -168,6 +170,80 @@ void ValidateInput(char board[ROWS][COLS], char symbol)
         {
             validIN = true;
             insertAt(board, y, col, symbol);
+        }
+    }
+}
+
+void ValidateInput_Server(char board[ROWS][COLS], char symbol)
+{
+    int col, y;
+    bool validIN = false;
+
+    while (!validIN)
+    {
+        printf("\nIt's your turn. Please enter the column number: \n");
+        if (scanf("%d", &col) != 1)
+        {
+            clear_input_buffer();
+            printf("Invalid column number. Column number between 1-7.\n");
+            continue;
+        }
+
+        clear_input_buffer();
+        col--;
+
+        if (col < 0 || col >= COLS)
+        {
+            printf("Column out of range! Column number between 1-7.\n");
+            continue;
+        }
+
+        y = getAvailbleY(board, col);
+        if (y == -1)
+        {
+            printf("Column %d is full! Try a different one.\n", col + 1);
+        }
+        else
+        {
+            validIN = true;
+            insertAt(board, y, col, symbol);
+        }
+    }
+}
+
+int ValidateInput_Client(char board[ROWS][COLS], char symbol)
+{
+    int col, y;
+    bool validIN = false;
+
+    while (!validIN)
+    {
+        printf("\nIt's your turn. Please enter the column number: \n");
+        if (scanf("%d", &col) != 1)
+        {
+            clear_input_buffer();
+            printf("Invalid column number. Column number between 1-7.\n");
+            continue;
+        }
+
+        clear_input_buffer();
+        col--;
+
+        if (col < 0 || col >= COLS)
+        {
+            printf("Column out of range! Column number between 1-7.\n");
+            continue;
+        }
+
+        y = getAvailbleY(board, col);
+        if (y == -1)
+        {
+            printf("Column %d is full! Try a different one.\n", col + 1);
+        }
+        else
+        {
+            validIN = true;
+            return col;
         }
     }
 }
