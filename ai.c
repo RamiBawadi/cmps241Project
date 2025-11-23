@@ -2,8 +2,11 @@
 #include "game.h"
 #include "ai.h"
 
-#include <stdlib.h> // For rand()
-#include <time.h>   // For time() (from stack overflow)
+#include <stdlib.h>
+#include <time.h>
+#include <limits.h>
+
+// pruning means cuttiong off branches of the game that we dont need to explore because we already know they cant lead to a better result
 
 bool getisPlayerB_Ai()
 {
@@ -38,122 +41,216 @@ bool getisPlayerB_Ai()
         }
     }
     printf("Unreach");
-    return false; // for Werror
+    return false;
 }
 
-// easy level bot
 
-/* void ValidateInput_Ai(char board[ROWS][COLS]){
-    int col, y;
-    bool validIN = false;
-    srand(time(NULL)); //set the time as seed for the random number gen;
+#define MAX_DEPTH 6
+#define WIN_SCORE 1000000
+static const char BOT = '#';
 
-    while (!validIN) {
-        //choose a colum
-        int randomInt = rand(); //choose a random number (very big range)
-        int max = 6;
-        int min = 0;
-        col = (randomInt % (max - min + 1)) + min;
 
-        if (col < 0 || col >= COLS) {
-            //out of range, try again
-            continue;
+static char detectHumanSymbol(char board[ROWS][COLS])
+{
+    for (int r = 0; r < ROWS; r++)
+        for (int c = 0; c < COLS; c++)
+        {
+            char cell = board[r][c];
+            if (cell != '*' && cell != BOT && cell != '\0')
+                return cell;
+        }
+    return 'A';
+}
+
+
+// idea: Creates a temporary copy of the board used by Minimax for simulation without modifying the real board
+static void copyBoard(char dst[ROWS][COLS], char src[ROWS][COLS])
+{
+    for (int r = 0; r < ROWS; r++)
+        for (int c = 0; c < COLS; c++)
+            dst[r][c] = src[r][c];
+}
+
+
+// idea: Scores a 4-cell sequence (horizontal/vertical/diagonal) to estimate the strength of the board
+
+static int scoreWindow(char w[4], char me, char opp)
+{
+    int meCnt = 0, oppCnt = 0, empty = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (w[i] == me) meCnt++;
+        else if (w[i] == opp) oppCnt++;
+        else if (w[i] == '*') empty++;
+    }
+
+    if (meCnt == 4) return 100000;   // immediate win
+    if (meCnt == 3 && empty == 1) return 1000;
+    if (meCnt == 2 && empty == 2) return 50;
+
+    if (oppCnt == 3 && empty == 1) return -900; // must block
+    if (oppCnt == 4) return -100000;
+
+    return 0;
+}
+
+
+// idea: Heuristic evaluation of the board. Higher score means better position for the AI. Used by Minimax
+static int evaluateBoard(char b[ROWS][COLS], char me, char opp)
+{
+    int score = 0;
+    int center = COLS / 2;
+
+    for (int r = 0; r < ROWS; r++)
+        if (b[r][center] == me) score += 6;
+
+    // Horizontal
+    for (int r = 0; r < ROWS; r++)
+        for (int c = 0; c <= COLS - 4; c++)
+        {
+            char w[4] = {b[r][c], b[r][c+1], b[r][c+2], b[r][c+3]};
+            score += scoreWindow(w, me, opp);
         }
 
-        y = getAvailbleY(board, col);
-        if (y == -1) {
-            //collum full try again
-        } else {
-            validIN = true;
-            insertAt(board, y, col, '#');
+    // Vertical
+    for (int c = 0; c < COLS; c++)
+        for (int r = 0; r <= ROWS - 4; r++)
+        {
+            char w[4] = {b[r][c], b[r+1][c], b[r+2][c], b[r+3][c]};
+            score += scoreWindow(w, me, opp);
         }
+
+    // Diagonal down-right
+    for (int r = 0; r <= ROWS - 4; r++)
+        for (int c = 0; c <= COLS - 4; c++)
+        {
+            char w[4] = {b[r][c], b[r+1][c+1], b[r+2][c+2], b[r+3][c+3]};
+            score += scoreWindow(w, me, opp);
+        }
+
+    // Diagonal up-right
+    for (int r = 3; r < ROWS; r++)
+        for (int c = 0; c <= COLS - 4; c++)
+        {
+            char w[4] = {b[r][c], b[r-1][c+1], b[r-2][c+2], b[r-3][c+3]};
+            score += scoreWindow(w, me, opp);
+        }
+
+    return score;
+}
+
+// Move ordering for better pruning
+static const int ORDER[COLS] = {3,2,4,1,5,0,6};
+
+
+
+// idea: Core AI algorithm. Simulates game states up to MAX_DEPTH using Minimax with Alpha–Beta pruning
+static int minimax(char b[ROWS][COLS], int depth, int alpha, int beta,
+                   int maximize, char me, char opp, int *bestColOut)
+{
+    if (checkWinCondition(b))
+    {
+        int eval = evaluateBoard(b, me, opp);
+        if (eval > 0) return WIN_SCORE - (MAX_DEPTH - depth);
+        if (eval < 0) return -WIN_SCORE + (MAX_DEPTH - depth);
+        return 0;
+    }
+
+    if (depth == 0)
+        return evaluateBoard(b, me, opp);
+
+    int hasMove = 0;
+    for (int c = 0; c < COLS; c++)
+        if (getAvailbleY(b, c) != -1) { hasMove = 1; break; }
+    if (!hasMove) return 0;
+
+    if (maximize)
+    {
+        int bestScore = -INT_MAX, bestCol = -1;
+
+        for (int i = 0; i < COLS; i++)
+        {
+            int col = ORDER[i];
+            int y = getAvailbleY(b, col);
+            if (y == -1) continue;
+
+            char tmp[ROWS][COLS];
+            copyBoard(tmp, b);
+            insertAt(tmp, y, col, me);
+
+            int score = minimax(tmp, depth-1, alpha, beta, 0, me, opp, NULL);
+
+            if (score > bestScore) { bestScore = score; bestCol = col; }
+            if (bestScore > alpha) alpha = bestScore;
+            if (alpha >= beta) break;
+        }
+
+        if (bestColOut) *bestColOut = bestCol;
+        return bestScore;
+    }
+    else
+    {
+        int bestScore = INT_MAX, bestCol = -1;
+
+        for (int i = 0; i < COLS; i++)
+        {
+            int col = ORDER[i];
+            int y = getAvailbleY(b, col);
+            if (y == -1) continue;
+
+            char tmp[ROWS][COLS];
+            copyBoard(tmp, b);
+            insertAt(tmp, y, col, opp);
+
+            int score = minimax(tmp, depth-1, alpha, beta, 1, me, opp, NULL);
+
+            if (score < bestScore) { bestScore = score; bestCol = col; }
+            if (bestScore < beta) beta = bestScore;
+            if (alpha >= beta) break;
+        }
+
+        if (bestColOut) *bestColOut = bestCol;
+        return bestScore;
     }
 }
 
-*/
 
-// medium level bot
+// idea: hard ai move function This is the function used by the game to have the AI automatically choose its move
 void ValidateInput_Ai(char board[ROWS][COLS])
 {
+    static int seeded = 0;
+    if (!seeded) { srand((unsigned)time(NULL)); seeded = 1; }
 
-    const char botSym = '#';
-    char oppSym = 'A';
+    char me = BOT;
+    char opp = detectHumanSymbol(board);
 
-    for (int i = 0; i < ROWS; i++)
+    int bestCol = -1;
+
+    minimax(board, MAX_DEPTH, -INT_MAX, INT_MAX, 1, me, opp, &bestCol);
+
+    if (bestCol == -1)
     {
-        for (int j = 0; j < COLS; j++)
+        for (int c = 0; c < COLS; c++)
         {
-            char cell = board[i][j];
-            if (cell != '*' && cell != '#' && cell != '\0')
+            int y = getAvailbleY(board, c);
+            if (y != -1)
             {
-                oppSym = cell;
-                break;
+                insertAt(board, y, c, me);
+                return;
             }
         }
     }
-
-    static int s = 0;
-    if (!s)
+    else
     {
-        srand((unsigned)time(NULL));
-        s = 1;
-    }
-
-    int col, y;
-
-    for (col = 0; col < COLS; ++col)
-    {
-        y = getAvailbleY(board, col);
-        if (y == -1)
-            continue;
-
-        char tmp[ROWS][COLS];
-        for (int r = 0; r < ROWS; ++r)
-            for (int c = 0; c < COLS; ++c)
-                tmp[r][c] = board[r][c];
-
-        insertAt(tmp, y, col, botSym);
-        if (checkWinCondition(tmp))
-        {
-            insertAt(board, y, col, botSym);
-            return;
-        }
-    }
-
-    for (col = 0; col < COLS; ++col)
-    {
-        y = getAvailbleY(board, col);
-        if (y == -1)
-            continue;
-
-        char tmp[ROWS][COLS];
-        for (int r = 0; r < ROWS; ++r)
-            for (int c = 0; c < COLS; ++c)
-                tmp[r][c] = board[r][c];
-
-        insertAt(tmp, y, col, oppSym);
-        if (checkWinCondition(tmp))
-        {
-            insertAt(board, y, col, botSym);
-            return;
-        }
-    }
-
-    while (1)
-    {
-        int choice = rand() % COLS;
-        y = getAvailbleY(board, choice);
-        if (y != -1)
-        {
-            insertAt(board, y, choice, botSym);
-            return;
-        }
+        int y = getAvailbleY(board, bestCol);
+        insertAt(board, y, bestCol, me);
     }
 }
 
+
+
 void reportStrategyComplexity(void)
 {
-
     int rows = ROWS;
     int cols = COLS;
 
