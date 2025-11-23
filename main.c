@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "game.h"
 #include "ai.h"
 #include "server.h"

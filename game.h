@@ -19,6 +19,8 @@ void printBoard(char board[ROWS][COLS]);
 int checkWinCondition(char board[ROWS][COLS]);
 int getAvailbleY(char board[ROWS][COLS], int x);
 void ValidateInput(char board[ROWS][COLS], char symbol);
+void ValidateInput_Server(char board[ROWS][COLS], char symbol);
+int ValidateInput_Client(char board[ROWS][COLS], char symbol);
 bool canContinueGame(char board[ROWS][COLS]);
 
 #endif
