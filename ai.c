@@ -272,16 +272,15 @@ void reportStrategyComplexity(void)
     // 2) insert move -> O(1)
     // 3) maybe checkWin or evaluate -> O(rows*cols)
     
-    // We'll approximate:
+   
     long approxCopyCost  = rows * cols;          // copyBoard
     long approxEvalCost  = 12L * rows * cols;    
     long approxNodeCost  = approxCopyCost + approxEvalCost;
 
-    // ---- Tree size estimates ----
     // Worst case minimax explores ~ cols^depth nodes
     // Best case alpha-beta explores ~ cols^(depth/2) nodes
-    //
     // We'll compute integer powers safely:
+
     long worstNodes = 1;
     for(int i = 0; i < depth; i++)
         worstNodes *= cols;
@@ -290,7 +289,7 @@ void reportStrategyComplexity(void)
     for(int i = 0; i < (depth / 2); i++)
         bestNodes *= cols;
 
-    // ---- Total work ----
+    //Tot work
     long worstWork = worstNodes * approxNodeCost;
     long bestWork  = bestNodes  * approxNodeCost;
 
