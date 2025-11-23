@@ -261,6 +261,7 @@ int main()
                     sprintf(msg, "WIN:%c", playerAChar);
                     server_send_message(msg);
                     endGame = true;
+                    server_close();
                     break;
                 }
                 else
@@ -282,6 +283,7 @@ int main()
                     sprintf(msg, "WIN:%c", playerBChar); // format WIN:A or WIN:B
                     server_send_message(msg);
                     endGame = true;
+                    server_close();
                     break;
                 }
                 else
