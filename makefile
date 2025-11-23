@@ -22,8 +22,12 @@ client.o: client.c client.h
 	$(CC) $(CFLAGS) -c $< -o $@
 	
 .PHONY: clean
+.PHONY: gitclean
 clean:
 	rm -f $(OBJS) $(TARGET)
+
+gitclean:
+	git rm $(OBJS) $(TARGET)
 
 	
 
