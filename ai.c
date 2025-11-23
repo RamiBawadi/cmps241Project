@@ -12,34 +12,40 @@ bool getisPlayerB_Ai()
 {
     bool validIN = false;
 
-    while (!validIN)
+    while(!validIN)
     {
         printf("\n");
         int res;
         printf("Do you want to play agaist:\n\t0 : AI\n\t1 : Another Player\n\nPlease select a number (0,1) : ");
-        if (scanf("%d", &res) != 1)
+
+        if(scanf("%d", &res) != 1)
         {
             printf("Invalid number, please try again.\n");
             clear_input_buffer();
             continue;
         }
 
-        if (res == 0)
+        if(res == 0)
         {
             validIN = true;
             return true;
         }
+
         else if (res == 1)
+        
         {
             validIN = true;
             return false;
+
         }
+
         else
         {
             printf("Invalid number, please try again.\n");
             clear_input_buffer();
         }
     }
+
     printf("Unreach");
     return false;
 }
@@ -52,13 +58,14 @@ static const char BOT = '#';
 
 static char detectHumanSymbol(char board[ROWS][COLS])
 {
-    for (int r = 0; r < ROWS; r++)
-        for (int c = 0; c < COLS; c++)
+    for(int r = 0; r < ROWS; r++)
+        for(int c = 0; c < COLS; c++)
         {
             char cell = board[r][c];
-            if (cell != '*' && cell != BOT && cell != '\0')
+            if(cell != '*' && cell != BOT && cell != '\0')
                 return cell;
         }
+
     return 'A';
 }
 
@@ -66,8 +73,8 @@ static char detectHumanSymbol(char board[ROWS][COLS])
 // idea: Creates a temporary copy of the board used by Minimax for simulation without modifying the real board
 static void copyBoard(char dst[ROWS][COLS], char src[ROWS][COLS])
 {
-    for (int r = 0; r < ROWS; r++)
-        for (int c = 0; c < COLS; c++)
+    for(int r = 0; r < ROWS; r++)
+        for(int c = 0; c < COLS; c++)
             dst[r][c] = src[r][c];
 }
 
@@ -76,20 +83,22 @@ static void copyBoard(char dst[ROWS][COLS], char src[ROWS][COLS])
 
 static int scoreWindow(char w[4], char me, char opp)
 {
-    int meCnt = 0, oppCnt = 0, empty = 0;
-    for (int i = 0; i < 4; i++)
+    int meCount = 0, oppCount = 0, empty = 0;
+
+    for(int i = 0; i < 4; i++)
     {
-        if (w[i] == me) meCnt++;
-        else if (w[i] == opp) oppCnt++;
+        if (w[i] == me) meCount++;
+        else if (w[i] == opp) oppCount++;
         else if (w[i] == '*') empty++;
+
     }
 
-    if (meCnt == 4) return 100000;   // immediate win
-    if (meCnt == 3 && empty == 1) return 1000;
-    if (meCnt == 2 && empty == 2) return 50;
+    if (meCount == 4) return 100000;   // immediate win
+    if (meCount == 3 && empty == 1) return 1000;
+    if (meCount == 2 && empty == 2) return 50;
 
-    if (oppCnt == 3 && empty == 1) return -900; // must block
-    if (oppCnt == 4) return -100000;
+    if (oppCount == 3 && empty == 1) return -900; // must block
+    if (oppCount == 4) return -100000;
 
     return 0;
 }
@@ -101,11 +110,11 @@ static int evaluateBoard(char b[ROWS][COLS], char me, char opp)
     int score = 0;
     int center = COLS / 2;
 
-    for (int r = 0; r < ROWS; r++)
+    for(int r = 0; r < ROWS; r++)
         if (b[r][center] == me) score += 6;
 
     // Horizontal
-    for (int r = 0; r < ROWS; r++)
+    for(int r = 0; r < ROWS; r++)
         for (int c = 0; c <= COLS - 4; c++)
         {
             char w[4] = {b[r][c], b[r][c+1], b[r][c+2], b[r][c+3]};
@@ -113,7 +122,7 @@ static int evaluateBoard(char b[ROWS][COLS], char me, char opp)
         }
 
     // Vertical
-    for (int c = 0; c < COLS; c++)
+    for(int c = 0; c < COLS; c++)
         for (int r = 0; r <= ROWS - 4; r++)
         {
             char w[4] = {b[r][c], b[r+1][c], b[r+2][c], b[r+3][c]};
@@ -121,16 +130,16 @@ static int evaluateBoard(char b[ROWS][COLS], char me, char opp)
         }
 
     // Diagonal down-right
-    for (int r = 0; r <= ROWS - 4; r++)
-        for (int c = 0; c <= COLS - 4; c++)
+    for(int r = 0; r <= ROWS - 4; r++)
+        for(int c = 0; c <= COLS - 4; c++)
         {
             char w[4] = {b[r][c], b[r+1][c+1], b[r+2][c+2], b[r+3][c+3]};
             score += scoreWindow(w, me, opp);
         }
 
     // Diagonal up-right
-    for (int r = 3; r < ROWS; r++)
-        for (int c = 0; c <= COLS - 4; c++)
+    for(int r = 3; r < ROWS; r++)
+        for(int c = 0; c <= COLS - 4; c++)
         {
             char w[4] = {b[r][c], b[r-1][c+1], b[r-2][c+2], b[r-3][c+3]};
             score += scoreWindow(w, me, opp);
@@ -152,7 +161,7 @@ static int minimax(char b[ROWS][COLS], int depth, int alpha, int beta,
     {
         int eval = evaluateBoard(b, me, opp);
         if (eval > 0) return WIN_SCORE - (MAX_DEPTH - depth);
-        if (eval < 0) return -WIN_SCORE + (MAX_DEPTH - depth);
+        if (eval < 0) return - WIN_SCORE + (MAX_DEPTH - depth);
         return 0;
     }
 
@@ -160,6 +169,7 @@ static int minimax(char b[ROWS][COLS], int depth, int alpha, int beta,
         return evaluateBoard(b, me, opp);
 
     int hasMove = 0;
+
     for (int c = 0; c < COLS; c++)
         if (getAvailbleY(b, c) != -1) { hasMove = 1; break; }
     if (!hasMove) return 0;
@@ -188,6 +198,7 @@ static int minimax(char b[ROWS][COLS], int depth, int alpha, int beta,
         if (bestColOut) *bestColOut = bestCol;
         return bestScore;
     }
+
     else
     {
         int bestScore = INT_MAX, bestCol = -1;
@@ -240,6 +251,7 @@ void ValidateInput_Ai(char board[ROWS][COLS])
             }
         }
     }
+
     else
     {
         int y = getAvailbleY(board, bestCol);
@@ -271,11 +283,11 @@ void reportStrategyComplexity(void)
     //
     // We'll compute integer powers safely:
     long worstNodes = 1;
-    for (int i = 0; i < depth; i++)
+    for(int i = 0; i < depth; i++)
         worstNodes *= cols;
 
     long bestNodes = 1;
-    for (int i = 0; i < (depth / 2); i++)
+    for(int i = 0; i < (depth / 2); i++)
         bestNodes *= cols;
 
     // ---- Total work ----
