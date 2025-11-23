@@ -253,25 +253,52 @@ void reportStrategyComplexity(void)
 {
     int rows = ROWS;
     int cols = COLS;
+    int depth = MAX_DEPTH;
 
-    long approxCheckCost = 12L * rows * cols;
-    long approxCopyCost = rows * cols;
-    long oneSimulatedMove = approxCopyCost + approxCheckCost;
-    long winScanCost = cols * oneSimulatedMove;
-    long blockScanCost = cols * oneSimulatedMove;
-    long randomFallbackCost = rows * cols;
-    long totalWork = winScanCost + blockScanCost + randomFallbackCost;
+    // At each minimax node we:
+    // 1) copy board  -> O(rows*cols)
+    // 2) insert move -> O(1)
+    // 3) maybe checkWin or evaluate -> O(rows*cols)
+    
+    // We'll approximate:
+    long approxCopyCost  = rows * cols;          // copyBoard
+    long approxEvalCost  = 12L * rows * cols;    
+    long approxNodeCost  = approxCopyCost + approxEvalCost;
 
-    printf("\n========== Strategy Complexity Report ==========\n");
-    printf("Board Size  : %d rows x %d columns\n", rows, cols);
-    printf("Bot Time Complexity per Move: O(R * C^2)\n\n");
+    // ---- Tree size estimates ----
+    // Worst case minimax explores ~ cols^depth nodes
+    // Best case alpha-beta explores ~ cols^(depth/2) nodes
+    //
+    // We'll compute integer powers safely:
+    long worstNodes = 1;
+    for (int i = 0; i < depth; i++)
+        worstNodes *= cols;
 
-    printf("Breakdown:\n");
-    printf("  One simulated move (copy + check)      ≈ %ld steps\n", oneSimulatedMove);
-    printf("  Winning move scan across board          ≈ %ld steps\n", winScanCost);
-    printf("  Blocking move scan across board         ≈ %ld steps\n", blockScanCost);
-    printf("  Random fallback (worst case)            ≈ %ld steps\n", randomFallbackCost);
+    long bestNodes = 1;
+    for (int i = 0; i < (depth / 2); i++)
+        bestNodes *= cols;
 
-    printf("\nEstimated Total per Medium AI Move        ≈ %ld steps\n", totalWork);
-    printf("==========================================================\n\n");
+    // ---- Total work ----
+    long worstWork = worstNodes * approxNodeCost;
+    long bestWork  = bestNodes  * approxNodeCost;
+
+    printf("\n========== Hard Bot Complexity Report ==========\n");
+    printf("Board Size   : %d rows x %d columns\n", rows, cols);
+    printf("Search Depth : %d plies (moves ahead)\n", depth);
+    printf("Branching    : up to %d moves per node\n\n", cols);
+
+    printf("Per-node cost (copy + eval/check) ≈ %ld steps\n\n", approxNodeCost);
+
+    printf("Worst-case (no pruning):\n");
+    printf("  Nodes explored ≈ C^D = %ld\n", worstNodes);
+    printf("  Time Complexity ≈ O(C^D * R*C)\n");
+    printf("  Estimated work ≈ %ld steps\n\n", worstWork);
+
+    printf("Best-case (ideal alpha–beta pruning):\n");
+    printf("  Nodes explored ≈ C^(D/2) = %ld\n", bestNodes);
+    printf("  Time Complexity ≈ O(C^(D/2) * R*C)\n");
+    printf("  Estimated work ≈ %ld steps\n", bestWork);
+
+    printf("=========================================================\n\n");
 }
+
